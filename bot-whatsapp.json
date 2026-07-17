@@ -1,0 +1,926 @@
+{
+  "name": "bot-whatsapp",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -176
+      ],
+      "id": "16d16716-cc4e-47e0-9c9a-860545f8577c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "http://evolution:8080/instance/connect/bot-whatsapp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "MiTokenSeguroYSecreto123"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -240,
+        -176
+      ],
+      "id": "21d18fdd-2b42-49b5-9070-5e9418a14c87",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.data.message.conversation || $json.body.data.message.extendedTextMessage.text }}",
+        "options": {
+          "systemMessage": "=<IDENTIDAD>\nEres \"Ateneo\", un librero carismático, apasionado y experto en literatura. Tu misión es guiar a cada cliente con entusiasmo, hacerle recomendaciones maravillosas, gestionar ventas y procesar pagos. \nHABLA SIEMPRE CON CERCANÍA Y USA EMOJIS (📚, ✨, 📖, 🚚, etc.) acordes a lo que estés diciendo. ¡Demuestra que amas los libros!\n</IDENTIDAD>\n\n<GUARDARRAILES>\nNUNCA respondas preguntas sobre medicina, salud, política, violencia, drogas, sexo, u otros temas ajenos a la librería. \nSi el cliente pregunta algo fuera de contexto, desvía la charla amablemente con estilo de librero. Por ejemplo: \"¡Uy! Como librero, mi especialidad son las grandes historias y los libros maravillosos 📚✨, pero no tengo información sobre ese tema. ¿Qué tal si mejor te recomiendo una buena novela de misterio o fantasía?\"\n</GUARDARRAILES>\n\n<CAPACIDADES>\nTienes herramientas a tu disposición. Úsalas según el contexto:\n1. CONSULTAR INVENTARIO → Buscar por título o autor.\n2. BUSCAR POR GÉNERO → Buscar libros por categorías.\n3. LISTAR AUTORES Y CATEGORÍAS → Mostrar qué tenemos.\n4. REGISTRAR PEDIDO → Crear la venta (devuelve el codigo_seguimiento).\n5. CONSULTAR PEDIDO → Ver el estado con el código de 5 dígitos.\n6. REGISTRAR COMPROBANTE → Ejecutar SOLO tras analizar la imagen del pago.\n7. NOTIFICAR ADMIN VENTA → Enviar correo de cierre de venta.\n</CAPACIDADES>\n\n<REGLAS_CRITICAS>\n- NUNCA inventes stock, precios ni códigos.\n- Compra Contraentrega: El estado para registrar el pedido es \"en espera de tomar el pedido\".\n- Compra Transferencia: El estado para registrar el pedido es \"pendiente_pago\".\n</REGLAS_CRITICAS>\n\n<PROTOCOLO_EXPLORACION>\nSi preguntan \"¿Qué tienes?\" usa la herramienta listar_autores_y_categorias y respóndele con muchísima emoción mostrándole las opciones.\nSi piden recomendación de un género, usa buscar_por_genero y descríbele los libros como si fueran joyas literarias.\n</PROTOCOLO_EXPLORACION>\n\n<PROTOCOLO_PEDIDO_Y_LOGISTICA>\nCuando el cliente confirme que desea comprar un libro:\nPASO 1 → Solicita 5 datos exactos: Nombre completo, Teléfono, Ciudad, Dirección de envío, y Método de Pago (Transferencia o Contraentrega).\nPASO 2 → Ejecuta la herramienta \"registrar_pedido\". Esta te devolverá un \"codigo_seguimiento\".\nPASO 3 → Despedida feliz obligatoria: \"¡Listo! Todo preparado 🎉. Tu código de seguimiento es [codigo_seguimiento]. La entrega en tu ciudad tomará de 1 a 5 días máximo 🚚. ¡Te llamaremos el día de la entrega!\"\nPASO 4 → Si pagó Contraentrega, ejecuta INMEDIATAMENTE \"notificar_admin_venta\".\n</PROTOCOLO_PEDIDO_Y_LOGISTICA>\n\n<ANALISIS_DE_PAGOS_VISION_ARTIFICIAL>\nSi eligió transferencia, en el Paso 3 dile: \"Perfecto ✨. Transfiere el total a Nequi (3245353147) o Bancolombia (91292201287) y envíame la fotico del comprobante por aquí para despachar tu pedido.\"\nCUANDO REBAS UNA IMAGEN:\n1. Lee el monto (¿Coincide?).\n2. Lee la cuenta (¿Es Nequi 3245353147 o Bancolombia 91292201287?).\n- SI ESTÁ MAL: Dile amablemente que algo no cuadra (\"Parece que el valor no coincide, revísalo porfa 🙏\").\n- SI ESTÁ PERFECTO: Ejecuta \"registrar_comprobante\", luego \"notificar_admin_venta\" (con la URL de la imagen), y confírmale con mucha emoción que su pedido fue aprobado y va a empaque 📦.\n</ANALISIS_DE_PAGOS_VISION_ARTIFICIAL>\n\n<ESTADOS_PERMITIDOS>\n- pendiente_pago\n- en espera de tomar el pedido\n- preparando pedido\n- pedido empacado esperando a salir\n- pedido saliendo a direccion\n</ESTADOS_PERMITIDOS>"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1392,
+        160
+      ],
+      "id": "10e1a7db-5f1d-4d1f-afc5-3eff1e7e7d84",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "recepcion-mensajes",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -464,
+        224
+      ],
+      "id": "a530d8c8-f8d2-42fa-9abc-9022d47f3a3c",
+      "name": "Webhook",
+      "webhookId": "0648e715-abbe-4d44-a9fb-3f8377e6f24e"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.data.key.remoteJid }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1008,
+        384
+      ],
+      "id": "c36c8349-2dda-464e-8679-85ae7a3a1d71",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Busca libros en el inventario por título o autor para saber precio y stock. Úsalo SIEMPRE que el cliente pregunte por un libro o autor.",
+        "operation": "executeQuery",
+        "query": "SELECT l.titulo, a.nombre AS autor, l.precio, l.stock\nFROM libros l\nLEFT JOIN libros_autores la ON l.libro_id = la.libro_id\nLEFT JOIN autores a ON la.autor_id = a.autor_id\nWHERE LOWER(l.titulo) LIKE LOWER('%' || '{{ $fromAI(\"busqueda\", \"Nombre del libro o autor a buscar\") }}' || '%')\n   OR LOWER(a.nombre) LIKE LOWER('%' || '{{ $fromAI(\"busqueda\", \"Nombre del libro o autor a buscar\") }}' || '%')\nLIMIT 5;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        1136,
+        384
+      ],
+      "id": "332f5d09-deb4-472a-9344-0eff2d426f2b",
+      "name": "consultar_inventario_libreria",
+      "credentials": {
+        "postgres": {
+          "id": "Y1JdXbFScfWC4jWx",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS pedidos (\n  id               SERIAL PRIMARY KEY,\n  nombre_cliente   VARCHAR(100)  NOT NULL,\n  telefono         VARCHAR(30),\n  libro            VARCHAR(200)  NOT NULL,\n  cantidad         INT           DEFAULT 1,\n  precio_total     NUMERIC(10,2),\n  direccion        TEXT          NOT NULL,\n  metodo_pago      VARCHAR(30)   NOT NULL,\n  -- Valores posibles: 'transferencia' | 'contraentrega'\n  estado           VARCHAR(30)   DEFAULT 'pendiente',\n  -- Valores posibles: 'pendiente' | 'pago_verificado' | 'en_preparacion' | 'enviado' | 'entregado'\n  comprobante_url  TEXT,\n  notas            TEXT,\n  created_at       TIMESTAMP     DEFAULT NOW(),\n  updated_at       TIMESTAMP     DEFAULT NOW()\n);\n\nCREATE INDEX idx_pedidos_telefono ON pedidos(telefono);\nCREATE INDEX idx_pedidos_estado   ON pedidos(estado);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -464,
+        816
+      ],
+      "id": "8668de70-0140-4c17-8d3f-1401ca92ba58",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "Y1JdXbFScfWC4jWx",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Registra un nuevo pedido. Para contraentrega el estado inicial debe ser \"en espera de tomar el pedido\". Para transferencias debe ser \"pendiente_pago\". Te devolverá un codigo_seguimiento que DEBES darle al cliente.",
+        "operation": "executeQuery",
+        "query": "INSERT INTO pedidos (nombre_cliente, telefono, ciudad, direccion, libro, cantidad, precio_total, metodo_pago, estado)\nVALUES (\n    '{{ $fromAI(\"nombre_cliente\") }}',\n    '{{ $fromAI(\"telefono\") }}',\n    '{{ $fromAI(\"ciudad\") }}',\n    '{{ $fromAI(\"direccion\") }}',\n    '{{ $fromAI(\"libro\") }}',\n    {{ $fromAI(\"cantidad\") }},\n    {{ $fromAI(\"precio_total\") }},\n    '{{ $fromAI(\"metodo_pago\") }}',\n    '{{ $fromAI(\"estado\") }}'\n)\nRETURNING codigo_seguimiento;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        1264,
+        384
+      ],
+      "id": "459d6f57-7347-4c5f-b861-e7fb347b90f4",
+      "name": "registrar_pedido",
+      "credentials": {
+        "postgres": {
+          "id": "Y1JdXbFScfWC4jWx",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Busca un pedido usando el código de seguimiento de 5 dígitos que te dará el cliente.",
+        "operation": "executeQuery",
+        "query": "SELECT libro, cantidad, precio_total, direccion, metodo_pago, estado\nFROM pedidos\nWHERE codigo_seguimiento = '{{ $fromAI(\"codigo_seguimiento\") }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        1392,
+        384
+      ],
+      "id": "76740bfa-2e7a-4157-8271-a766bb97f812",
+      "name": "consultar_pedido",
+      "credentials": {
+        "postgres": {
+          "id": "Y1JdXbFScfWC4jWx",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Actualiza el estado de un pedido. Estados posibles: pendiente, pago_verificado, en_preparacion, enviado, entregado. Úsalo para cambiar el estado.",
+        "operation": "executeQuery",
+        "query": "UPDATE pedidos\nSET \n  estado = '{{ $fromAI(\"nuevo_estado\", \"Nuevo estado del pedido: pendiente | pago_verificado | en_preparacion | enviado | entregado\") }}',\n  updated_at = NOW()\nWHERE id = {{ $fromAI(\"id_pedido\", \"ID numérico del pedido a actualizar\", \"number\") }}\nRETURNING id, nombre_cliente, libro, estado;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        1520,
+        384
+      ],
+      "id": "1b00cd6f-daf1-4b30-8990-f92896960f71",
+      "name": "actualizar_estado_pedido",
+      "credentials": {
+        "postgres": {
+          "id": "Y1JdXbFScfWC4jWx",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Guarda la URL del comprobante SOLO si ya hiciste el análisis visual y aprobaste el pago. Actualiza el estado a \"preparando pedido\".",
+        "operation": "executeQuery",
+        "query": "UPDATE pedidos\nSET comprobante_url = '{{ $fromAI(\"comprobante_url\") }}',\n    estado = 'preparando pedido'\nWHERE codigo_seguimiento = '{{ $fromAI(\"codigo_seguimiento\") }}'\nRETURNING codigo_seguimiento;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        1648,
+        384
+      ],
+      "id": "3b90b2aa-f0af-4599-a137-1324f55ddacc",
+      "name": "registrar_comprobante",
+      "credentials": {
+        "postgres": {
+          "id": "Y1JdXbFScfWC4jWx",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        880,
+        384
+      ],
+      "id": "a546799c-d129-494a-8e1c-02cfcd96f9f1",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LCcwjbdOEn8QW3bg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Busca y recomienda libros basándose en un género o tema (ejemplo: terror, romance, ciencia ficción). Úsalo cuando el cliente pida libros de un género específico o no sepa qué leer.",
+        "operation": "executeQuery",
+        "query": "SELECT l.titulo, a.nombre AS autor, l.precio, c.nombre_categoria AS genero\nFROM libros l\nJOIN libros_categorias lc ON l.libro_id = lc.libro_id\nJOIN categorias c ON lc.categoria_id = c.categoria_id\nLEFT JOIN libros_autores la ON l.libro_id = la.libro_id\nLEFT JOIN autores a ON la.autor_id = a.autor_id\nWHERE LOWER(c.nombre_categoria) LIKE LOWER('%' || '{{ $fromAI(\"genero\", \"El género de libros que busca el cliente (ej: terror, romance)\") }}' || '%')\nORDER BY RANDOM()\nLIMIT 5;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        1776,
+        384
+      ],
+      "id": "16067c7d-633e-4afc-b4ef-426360c3b415",
+      "name": "buscar_por_genero",
+      "credentials": {
+        "postgres": {
+          "id": "Y1JdXbFScfWC4jWx",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Obtiene una lista de los géneros disponibles y los autores más populares. Úsalo SIEMPRE que el cliente haga preguntas abiertas como \"¿qué autores tienes?\", \"¿qué géneros tienen?\" o \"¿qué libros tienen disponibles?\".",
+        "operation": "executeQuery",
+        "query": "SELECT \n  (SELECT string_agg(nombre_categoria, ', ') FROM categorias) AS generos_disponibles,\n  (SELECT string_agg(nombre, ', ') FROM (SELECT nombre FROM autores ORDER BY RANDOM() LIMIT 8) sub) AS autores_destacados;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        1904,
+        384
+      ],
+      "id": "6df09a9a-93d9-4ec3-91bc-7e478678db54",
+      "name": "listar_autores_y_categorias",
+      "credentials": {
+        "postgres": {
+          "id": "Y1JdXbFScfWC4jWx",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Ejecutar INMEDIATAMENTE después de registrar un pedido Contraentrega, o justo después de registrar un comprobante de transferencia válido. Pasarás los detalles del pedido.",
+        "workflowId": {
+          "__rl": true,
+          "value": "1i1ygyaVh3csZHFd",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/1i1ygyaVh3csZHFd",
+          "cachedResultName": "Email Admin Ateneo"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "codigo_seguimiento": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('codigo_seguimiento', ``, 'string') }}",
+            "productos": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('productos', ``, 'string') }}",
+            "direccion": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('direccion', ``, 'string') }}",
+            "tipo_pago": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('tipo_pago', ``, 'string') }}",
+            "monto": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('monto', ``, 'string') }}",
+            "comprobante": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('comprobante', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "bot-whatsapp"
+          ],
+          "schema": [
+            {
+              "id": "codigo_seguimiento",
+              "displayName": "codigo_seguimiento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "productos",
+              "displayName": "productos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "direccion",
+              "displayName": "direccion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "tipo_pago",
+              "displayName": "tipo_pago",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "monto",
+              "displayName": "monto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "comprobante",
+              "displayName": "comprobante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        2032,
+        384
+      ],
+      "id": "3f3e4f26-d47c-4d6c-81e4-2555610ca795",
+      "name": "notificar_admin_venta"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.data.messageType }}",
+                    "rightValue": "audioMessage",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "5eee3119-b6e6-4ff7-8581-72ef6b845511"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "msg audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "71f6a278-cf5b-479e-9465-75ec915b032b",
+                    "leftValue": "={{ $json.body.data.messageType }}",
+                    "rightValue": "extendedTextMessage",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "msg Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "94f87a32-48e0-434c-a16e-97fdbda5316b",
+                    "leftValue": "={{ $json.body.data.messageType }}",
+                    "rightValue": "conversation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "msg Texto Normal"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        208
+      ],
+      "id": "f5b75b19-b51f-49ed-8a9d-556c12581c4d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution:8080/chat/getBase64FromMediaMessage/bot-whatsapp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "MiTokenSeguroYSecreto123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"message\": {{ JSON.stringify($json.body.data) }} }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -16,
+        80
+      ],
+      "id": "08ff1135-e6a3-421c-b183-9fd93d2506d0",
+      "name": "Descargador"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Tomamos el base64 que nos entregó el nodo anterior\nlet rawBase64 = $input.item.json.base64;\n\n// Si el texto trae basura al inicio (como \"data:audio/ogg;base64,\"), se la quitamos\nif (rawBase64 && rawBase64.includes(\",\")) {\n    rawBase64 = rawBase64.split(\",\")[1];\n}\n\nif (!rawBase64) {\n    throw new Error(\"No se pudo descargar el audio desde Evolution API.\");\n}\n\n// Rescatamos el número de celular buscando hacia atrás en el nodo Webhook\nconst remoteJid = $('Webhook').item.json.body.data.key.remoteJid;\n\n// Empaquetamos el archivo para Groq\n$input.item.binary = {\n  data: {\n    data: rawBase64,\n    mimeType: 'audio/ogg',\n    fileName: 'audio.ogg'\n  }\n};\n$input.item.json = { remoteJid: remoteJid }; \n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        80
+      ],
+      "id": "57773cc0-54c8-4398-90e0-cf2c1623d91b",
+      "name": "Empaquetar Audio"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b7f05d32-01bb-4710-a524-899d88152d5e",
+              "name": "body.data.message.conversation",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "07fc335d-74bf-422e-b7b1-4077198f3eb3",
+              "name": "body.data.key.remoteJid",
+              "value": "={{ $('Webhook').item.json.body.data.key.remoteJid }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        656,
+        80
+      ],
+      "id": "defeab41-befd-4473-9df6-beadc8623931",
+      "name": "Inyectar Texto a IA"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "whisper-large-v3"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        432,
+        80
+      ],
+      "id": "f6182c6c-0d81-49b4-861b-c8b0aa740cc6",
+      "name": "Transcribir Audio (Groq)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution:8080/message/sendText/bot-whatsapp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "MiTokenSeguroYSecreto123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "573245353147"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2240,
+        160
+      ],
+      "id": "8957d4b4-5555-4e05-a16e-14c6820697e6",
+      "name": "Enviar Respuesta WhatsApp"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution:8080/message/sendText/bot-whatsapp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "MiTokenSeguroYSecreto123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "573245353147"
+            },
+            {
+              "name": "text",
+              "value": "=📚 Como soy un bot lector, por ahora no puedo ver stickers ni videos. Por favor, escríbeme en texto."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -16,
+        368
+      ],
+      "id": "dd82b0c7-15bb-4590-98cf-d53cf74da246",
+      "name": "Mensaje de Error"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution:8080/webhook/set/bot-whatsapp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "MiTokenSeguroYSecreto123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"webhook\": {\n    \"enabled\": true,\n    \"url\": \"https://unchainable-keri-semiexternally.ngrok-free.dev/webhook-test/recepcion-mensajes\",\n    \"webhookByEvents\": false,\n    \"webhookBase64\": true,\n    \"events\": [\n      \"MESSAGES_UPSERT\"\n    ]\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -464,
+        592
+      ],
+      "id": "202a482a-b4b8-44cc-afc8-5518689bd55d",
+      "name": "Configurar Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Enviar Respuesta WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_inventario_libreria": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "registrar_pedido": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_pedido": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "actualizar_estado_pedido": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "registrar_comprobante": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_por_genero": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "listar_autores_y_categorias": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "notificar_admin_venta": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Descargador",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mensaje de Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descargador": {
+      "main": [
+        [
+          {
+            "node": "Empaquetar Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Empaquetar Audio": {
+      "main": [
+        [
+          {
+            "node": "Transcribir Audio (Groq)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inyectar Texto a IA": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribir Audio (Groq)": {
+      "main": [
+        [
+          {
+            "node": "Inyectar Texto a IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "xvR3HufLLIfpNyXx"
+  },
+  "versionId": "ccedcf60-83ac-453c-881d-197a05648d8c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dc89e935bfd736a5a9776fc0e8e8529cd6a97effd981fd5a14ec40133f909f9e"
+  },
+  "id": "2FfpdhSZbS1hUCNg",
+  "tags": []
+}
